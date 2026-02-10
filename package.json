@@ -1,0 +1,36 @@
+{
+  "name": "changelog-gen",
+  "version": "1.0.0",
+  "description": "Generate user-friendly changelogs from git commits",
+  "module": "src/index.ts",
+  "type": "module",
+  "bin": {
+    "changelog-gen": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "bun build ./src/index.ts --outfile ./dist/index.js --target node",
+    "dev": "bun run src/index.ts",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "commander": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "changelog",
+    "git",
+    "release-notes",
+    "cli",
+    "conventional-commits"
+  ],
+  "license": "MIT"
+}
