@@ -1,5 +1,5 @@
 {
-  "name": "changelog-gen",
+  "name": "oh-my-changeloggy",
   "version": "1.2.0",
   "description": "Generate user-friendly changelogs from git commits with interactive TUI",
   "type": "module",
@@ -12,7 +12,7 @@
     }
   },
   "bin": {
-    "changelog-gen": "dist/index.js"
+    "changeloggy": "dist/index.js"
   },
   "files": [
     "dist/",

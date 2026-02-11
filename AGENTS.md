@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This is `changelog-gen`, a CLI tool that generates changelogs from git commits.
+This is `oh-my-changeloggy`, a CLI tool that generates changelogs from git commits.
 
 ## Architecture
 

@@ -1,4 +1,4 @@
-# Changelog Generator
+# Oh My Changeloggy
 
 Generate user-friendly changelogs from git commits with an interactive terminal UI.
 
@@ -6,10 +6,10 @@ Generate user-friendly changelogs from git commits with an interactive terminal 
 
 ```bash
 # Interactive mode
-npx changelog-gen
+npx oh-my-changeloggy
 
 # CLI mode
-changelog-gen --since last-tag --release v1.0.0 -o CHANGELOG.md
+changeloggy --since last-tag --release v1.0.0 -o CHANGELOG.md
 ```
 
 ## Features
@@ -25,7 +25,7 @@ changelog-gen --since last-tag --release v1.0.0 -o CHANGELOG.md
 ### Interactive Mode
 
 ```bash
-changelog-gen
+changeloggy
 ```
 
 Guides you through selecting commits, format, and output options.
@@ -34,19 +34,19 @@ Guides you through selecting commits, format, and output options.
 
 ```bash
 # Basic usage
-changelog-gen --since last-tag
+changeloggy --since last-tag
 
 # With version
-changelog-gen --since v1.0.0 --release v1.1.0 -o CHANGELOG.md
+changeloggy --since v1.0.0 --release v1.1.0 -o CHANGELOG.md
 
 # Update existing changelog
-changelog-gen --since v1.1.0 --release v1.2.0 -o CHANGELOG.md --prepend
+changeloggy --since v1.1.0 --release v1.2.0 -o CHANGELOG.md --prepend
 
 # Include all commits
-changelog-gen --since last-tag --include-internal
+changeloggy --since last-tag --include-internal
 
 # JSON output
-changelog-gen --since last-tag --format json
+changeloggy --since last-tag --format json
 ```
 
 ## Commit Format
@@ -77,7 +77,7 @@ bun run build
 
 # Link for local testing
 npm link
-changelog-gen --help
+changeloggy --help
 ```
 
 ## License
