@@ -21,7 +21,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "bun build ./src/index.ts --outfile ./dist/index.js --target node",
+    "build": "bun build ./src/index.ts --outfile ./dist/index.js --target node && echo '#!/usr/bin/env node' | cat - ./dist/index.js > temp && mv temp ./dist/index.js && chmod +x ./dist/index.js",
     "build:types": "tsc --emitDeclarationOnly",
     "dev": "bun run src/index.ts",
     "test": "bun test",

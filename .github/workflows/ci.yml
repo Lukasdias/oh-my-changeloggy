@@ -27,11 +27,15 @@ jobs:
       - name: Build
         run: bun run build
       
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      
       - name: Test CLI
         run: |
-          chmod +x ./dist/index.js
-          ./dist/index.js --version
-          ./dist/index.js --help
+          node ./dist/index.js --version
+          node ./dist/index.js --help
 
   lint:
     runs-on: ubuntu-latest
