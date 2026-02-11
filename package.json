@@ -1,6 +1,6 @@
 {
   "name": "oh-my-changeloggy",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Generate user-friendly changelogs from git commits with interactive TUI",
   "type": "module",
   "main": "./dist/index.js",
