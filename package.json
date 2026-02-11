@@ -56,10 +56,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lukashdias/changelog-gen.git"
+    "url": "git+https://github.com/lukashdias/oh-my-changeloggy.git"
   },
   "bugs": {
-    "url": "https://github.com/lukashdias/changelog-gen/issues"
+    "url": "https://github.com/lukashdias/oh-my-changeloggy/issues"
   },
-  "homepage": "https://github.com/lukashdias/changelog-gen#readme"
+  "homepage": "https://github.com/lukashdias/oh-my-changeloggy#readme"
 }
