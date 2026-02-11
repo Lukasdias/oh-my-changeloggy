@@ -1,53 +1,57 @@
 # Changelog Generator
 
-Generate user-friendly changelogs from git commits. Automatically categorizes changes and transforms technical commits into clear release notes.
+Generate user-friendly changelogs from git commits with an interactive terminal UI.
 
-## Installation
-
-```bash
-bun install
-bun run build
-npm link  # Makes it globally available as 'changelog-gen'
-```
-
-## Usage
+## Quick Start
 
 ```bash
-# Generate changelog since last tag
-changelog-gen --since last-tag
+# Interactive mode
+npx changelog-gen
 
-# Generate changelog for specific date range
-changelog-gen --since 2024-01-01 --until 2024-01-31
-
-# Output to file
-changelog-gen --since last-tag --output CHANGELOG.md
-
-# Preview without writing
-changelog-gen --since last-tag --dry-run
-
-# Include internal commits (chores, CI, etc.)
-changelog-gen --since last-tag --include-internal
-
-# Generate JSON output
-changelog-gen --since last-tag --format json
-
-# Specify version
-changelog-gen --since last-tag --release "v2.5.0"
+# CLI mode
+changelog-gen --since last-tag --release v1.0.0 -o CHANGELOG.md
 ```
 
 ## Features
 
-- Parses conventional commits (`feat:`, `fix:`, `refactor:`, etc.)
-- Categorizes changes by type (features, fixes, performance, etc.)
-- Filters out internal commits (chores, tests, style changes) by default
-- Supports custom date ranges or "last-tag" shorthand
-- Outputs Markdown or JSON
-- Handles breaking changes detection
-- Scope support for monorepos (`feat(api): add endpoint`)
+- **Interactive TUI**: Beautiful prompts with [@clack/prompts](https://github.com/bombshell-dev/clack)
+- **Conventional Commits**: Parses `feat:`, `fix:`, `refactor:`, etc.
+- **Smart Filtering**: Hides internal commits (chores, tests, CI) by default
+- **Update Existing**: `--prepend` flag adds new releases without losing history
+- **Multiple Formats**: Markdown or JSON output
+
+## Usage
+
+### Interactive Mode
+
+```bash
+changelog-gen
+```
+
+Guides you through selecting commits, format, and output options.
+
+### CLI Mode
+
+```bash
+# Basic usage
+changelog-gen --since last-tag
+
+# With version
+changelog-gen --since v1.0.0 --release v1.1.0 -o CHANGELOG.md
+
+# Update existing changelog
+changelog-gen --since v1.1.0 --release v1.2.0 -o CHANGELOG.md --prepend
+
+# Include all commits
+changelog-gen --since last-tag --include-internal
+
+# JSON output
+changelog-gen --since last-tag --format json
+```
 
 ## Commit Format
 
-Uses conventional commits:
+Supports conventional commits:
 
 ```
 <type>(<scope>): <subject>
@@ -57,13 +61,24 @@ Uses conventional commits:
 BREAKING CHANGE: <description>
 ```
 
-Types:
-- `feat`: New features ✨
-- `fix`: Bug fixes 🐛
-- `refactor`: Code refactoring ♻️
-- `perf`: Performance improvements ⚡
-- `docs`: Documentation 📚
-- `chore`, `ci`, `style`, `test`: Internal (filtered by default)
+Types: `feat`, `fix`, `refactor`, `perf`, `docs`, `chore`, `ci`, `style`, `test`, `build`
+
+## Development
+
+```bash
+# Install dependencies
+bun install
+
+# Build
+bun run build
+
+# Test locally
+./dist/index.js --since last-tag
+
+# Link for local testing
+npm link
+changelog-gen --help
+```
 
 ## License
 

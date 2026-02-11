@@ -1,7 +1,9 @@
 import { Command } from 'commander';
 import { execSync } from 'child_process';
-import { writeFileSync, existsSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
+import * as p from '@clack/prompts';
+import color from 'picocolors';
 
 interface Commit {
   hash: string;
@@ -35,6 +37,8 @@ interface ChangelogOptions {
   format: 'markdown' | 'json';
   includeInternal: boolean;
   release?: string;
+  interactive: boolean;
+  prepend: boolean;
 }
 
 const COMMIT_TYPES: Record<CommitType, { label: string; emoji: string; description: string }> = {
@@ -69,7 +73,7 @@ function parseConventionalCommit(subject: string): { type: CommitType; scope?: s
   };
 }
 
-function getLastTag(): string | null {
+function getLastTagSilent(): string | null {
   try {
     const result = execSync('git describe --tags --abbrev=0', { 
       encoding: 'utf-8',
@@ -81,12 +85,30 @@ function getLastTag(): string | null {
   }
 }
 
-function getCommits(since?: string, until?: string): Commit[] {
-  const format = '%H|%s|%b|%an|%ad|';
-  let command = `git log --format="${format}" --date=short`;
+async function getLastTagInteractive(): Promise<string | null> {
+  const s = p.spinner();
+  s.start('Checking for latest tag...');
+  
+  try {
+    const result = execSync('git describe --tags --abbrev=0', { 
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
+    const tag = result.trim();
+    s.stop(`Found tag: ${color.cyan(tag)}`);
+    return tag;
+  } catch {
+    s.stop(color.yellow('No tags found'));
+    return null;
+  }
+}
+
+async function getCommits(since?: string, until?: string, interactive = false): Promise<Commit[]> {
+  const format = '%H%x1f%s%x1f%b%x1f%an%x1f%ad%x1e';
+  let command = `git log --format="${format}" --date=short --no-merges`;
   
   if (since) {
-    const lastTag = getLastTag();
+    const lastTag = interactive ? await getLastTagInteractive() : getLastTagSilent();
     if (since === 'last-tag' && lastTag) {
       command += ` ${lastTag}..HEAD`;
     } else {
@@ -98,30 +120,37 @@ function getCommits(since?: string, until?: string): Commit[] {
     command += ` --until="${until}"`;
   }
   
+  const s = interactive ? p.spinner() : null;
+  if (s) s.start('Analyzing git history...');
+  
   try {
     const output = execSync(command, { encoding: 'utf-8' });
     
-    return output
-      .split('\n')
-      .filter(line => line.trim())
-      .map(line => {
-        const parts = line.split('|');
-        const subject = parts[1] || '';
+    const commits = output
+      .split('\x1e')
+      .map(entry => entry.trim())
+      .filter(entry => entry.length > 0)
+      .map(entry => {
+        const parts = entry.split('\x1f');
+        const subject = parts[1]?.trim() || '';
         const parsed = parseConventionalCommit(subject);
         
         return {
-          hash: parts[0]?.substring(0, 7) || '',
+          hash: parts[0]?.trim().substring(0, 7) || '',
           subject: parsed.description,
-          body: parts[2] || '',
-          author: parts[3] || '',
-          date: parts[4] || '',
+          body: parts[2]?.trim() || '',
+          author: parts[3]?.trim() || '',
+          date: parts[4]?.trim() || '',
           type: parsed.type,
           scope: parsed.scope,
         };
       });
+    
+    if (s) s.stop(`Found ${color.green(commits.length.toString())} commits`);
+    return commits;
   } catch (error) {
-    console.error('Error reading git log:', error);
-    return [];
+    if (s) s.stop(color.red('Failed to read git history'));
+    throw error;
   }
 }
 
@@ -157,13 +186,13 @@ function formatMarkdown(
     output += `*Changes since ${since}*\n\n`;
   }
   
-  const typeOrder: CommitType[] = ['feat', 'fix', 'perf', 'refactor', 'docs', 'revert', 'other'];
+  const typeOrder: CommitType[] = ['feat', 'fix', 'perf', 'refactor', 'docs', 'test', 'build', 'ci', 'chore', 'style', 'revert', 'other'];
   
   for (const type of typeOrder) {
-    const commits = categories.get(type);
+    const commits = categories.get(type as CommitType);
     if (!commits || commits.length === 0) continue;
     
-    const typeInfo = COMMIT_TYPES[type];
+    const typeInfo = COMMIT_TYPES[type as CommitType];
     output += `### ${typeInfo.label}\n\n`;
     
     for (const commit of commits) {
@@ -201,15 +230,197 @@ function formatJSON(categories: Map<CommitType, Commit[]>): string {
   return JSON.stringify(result, null, 2);
 }
 
+function previewCategories(categories: Map<CommitType, Commit[]>): void {
+  p.log.message('');
+  p.log.step('Changelog Summary:');
+  
+  const typeOrder: CommitType[] = ['feat', 'fix', 'perf', 'refactor', 'docs', 'revert', 'other'];
+  let totalCount = 0;
+  
+  for (const type of typeOrder) {
+    const commits = categories.get(type);
+    if (!commits || commits.length === 0) continue;
+    
+    totalCount += commits.length;
+    const typeInfo = COMMIT_TYPES[type];
+    const colorFn = type === 'feat' ? color.green : 
+                   type === 'fix' ? color.yellow :
+                   type === 'perf' ? color.cyan :
+                   type === 'docs' ? color.blue :
+                   color.gray;
+    
+    p.log.message(`  ${typeInfo.emoji} ${colorFn(typeInfo.label)}: ${commits.length}`);
+  }
+  
+  p.log.message(`  ${color.dim('─'.repeat(30))}`);
+  p.log.message(`  Total: ${color.bold(totalCount.toString())} changes`);
+  p.log.message('');
+}
+
+async function interactiveMode(): Promise<ChangelogOptions> {
+  p.intro(`${color.bgCyan(color.black(' changelog-gen '))}`);
+  
+  // Check git repo
+  if (!existsSync('.git')) {
+    p.log.error(color.red('Error: Not a git repository. Run from project root.'));
+    process.exit(1);
+  }
+  
+  const lastTag = await getLastTagInteractive();
+  
+  // Ask for range
+  const rangeType = await p.select({
+    message: 'Which commits to include?',
+    options: [
+      { value: 'last-tag', label: 'Since last tag', hint: lastTag ? lastTag : 'No tags found' },
+      { value: 'date', label: 'Since specific date' },
+      { value: 'all', label: 'All commits' },
+    ],
+  });
+  
+  if (p.isCancel(rangeType)) {
+    p.outro(color.yellow('Cancelled'));
+    process.exit(0);
+  }
+  
+  let since: string | undefined;
+  let until: string | undefined;
+  
+  if (rangeType === 'last-tag') {
+    since = 'last-tag';
+  } else if (rangeType === 'date') {
+    since = await p.text({
+      message: 'Enter start date (YYYY-MM-DD)',
+      placeholder: '2024-01-01',
+      validate: (value) => {
+        if (!value) return 'Date is required';
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return 'Invalid date format';
+      },
+    }) as string;
+    
+    if (p.isCancel(since)) {
+      p.outro(color.yellow('Cancelled'));
+      process.exit(0);
+    }
+  }
+  
+  // Ask for options
+  const includeInternal = await p.confirm({
+    message: 'Include internal commits (chores, tests, CI)?',
+    initialValue: false,
+  });
+  
+  if (p.isCancel(includeInternal)) {
+    p.outro(color.yellow('Cancelled'));
+    process.exit(0);
+  }
+  
+  const format = await p.select({
+    message: 'Output format',
+    options: [
+      { value: 'markdown', label: 'Markdown' },
+      { value: 'json', label: 'JSON' },
+    ],
+    initialValue: 'markdown',
+  });
+  
+  if (p.isCancel(format)) {
+    p.outro(color.yellow('Cancelled'));
+    process.exit(0);
+  }
+  
+  const shouldRelease = await p.confirm({
+    message: 'Set a release version?',
+    initialValue: false,
+  });
+  
+  if (p.isCancel(shouldRelease)) {
+    p.outro(color.yellow('Cancelled'));
+    process.exit(0);
+  }
+  
+  let release: string | undefined;
+  if (shouldRelease) {
+    release = await p.text({
+      message: 'Enter version',
+      placeholder: 'v1.0.0',
+    }) as string;
+    
+    if (p.isCancel(release)) {
+      p.outro(color.yellow('Cancelled'));
+      process.exit(0);
+    }
+  }
+  
+  const shouldWrite = await p.confirm({
+    message: 'Write to file?',
+    initialValue: false,
+  });
+  
+  if (p.isCancel(shouldWrite)) {
+    p.outro(color.yellow('Cancelled'));
+    process.exit(0);
+  }
+  
+  let output: string | undefined;
+  let prepend = false;
+  
+  if (shouldWrite) {
+    output = await p.text({
+      message: 'Output file path',
+      placeholder: 'CHANGELOG.md',
+      initialValue: 'CHANGELOG.md',
+    }) as string;
+    
+    if (p.isCancel(output)) {
+      p.outro(color.yellow('Cancelled'));
+      process.exit(0);
+    }
+    
+    // Ask about prepending if file exists
+    if (existsSync(output)) {
+      const shouldPrepend = await p.confirm({
+        message: `File ${output} exists. Prepend new entries instead of overwriting?`,
+        initialValue: true,
+      });
+      
+      if (p.isCancel(shouldPrepend)) {
+        p.outro(color.yellow('Cancelled'));
+        process.exit(0);
+      }
+      
+      prepend = shouldPrepend as boolean;
+    }
+  }
+  
+  return {
+    since,
+    until,
+    output,
+    dryRun: false,
+    format: format as 'markdown' | 'json',
+    includeInternal: includeInternal as boolean,
+    release,
+    interactive: true,
+    prepend,
+  };
+}
+
 async function generateChangelog(options: ChangelogOptions): Promise<string> {
-  const commits = getCommits(options.since, options.until);
+  const commits = await getCommits(options.since, options.until, options.interactive);
   
   if (commits.length === 0) {
-    console.log('No commits found in the specified range.');
+    if (options.interactive) {
+      p.log.warn(color.yellow('No commits found in the specified range.'));
+    }
     process.exit(0);
   }
   
   const categories = categorizeCommits(commits, options.includeInternal);
+  
+  if (options.interactive) {
+    previewCategories(categories);
+  }
   
   if (options.format === 'json') {
     return formatJSON(categories);
@@ -218,6 +429,79 @@ async function generateChangelog(options: ChangelogOptions): Promise<string> {
   return formatMarkdown(categories, options.release, options.since);
 }
 
+function prependToChangelog(newContent: string, filePath: string): string {
+  let existingContent = '';
+  
+  try {
+    existingContent = readFileSync(filePath, 'utf-8');
+  } catch {
+    // File doesn't exist, will create new
+    return newContent;
+  }
+  
+  // Remove the "# Changelog" header from new content if it exists
+  const contentWithoutHeader = newContent.replace(/^# Changelog\n\n/, '');
+  
+  // Find the position after "# Changelog" header in existing content
+  const headerMatch = existingContent.match(/^# Changelog\n*/);
+  if (headerMatch) {
+    const headerEnd = headerMatch[0].length;
+    return existingContent.slice(0, headerEnd) + contentWithoutHeader + existingContent.slice(headerEnd);
+  }
+  
+  // If no header found, prepend new content
+  return newContent + '\n' + existingContent;
+}
+
+async function run(options: ChangelogOptions) {
+  try {
+    const changelog = await generateChangelog(options);
+    
+    if (options.output) {
+      const outputPath = resolve(options.output);
+      
+      // Handle prepend logic
+      const shouldPrepend = options.prepend && existsSync(outputPath);
+      const contentToWrite = shouldPrepend 
+        ? prependToChangelog(changelog, outputPath)
+        : changelog;
+      
+      if (options.interactive) {
+        const s = p.spinner();
+        if (shouldPrepend) {
+          s.start(`Appending to existing ${color.cyan(outputPath)}...`);
+        } else {
+          s.start(`Writing to ${color.cyan(outputPath)}...`);
+        }
+        writeFileSync(outputPath, contentToWrite);
+        s.stop(color.green(`✓ ${shouldPrepend ? 'Updated' : 'Written to'} ${outputPath}`));
+        
+        p.log.success('Changelog generated successfully!');
+        p.log.info(color.dim(`Next steps: Review ${outputPath} and commit your changes`));
+        p.outro(color.green('Done! 🎉'));
+      } else {
+        writeFileSync(outputPath, contentToWrite);
+        console.log(color.green(`✓ Changelog ${shouldPrepend ? 'updated' : 'written'} to ${outputPath}`));
+      }
+    } else {
+      console.log('\n' + changelog);
+      if (options.interactive) {
+        p.outro(color.green('Done! 🎉'));
+      }
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (options.interactive) {
+      p.log.error(color.red(`Error: ${message}`));
+      p.outro(color.red('Failed ❌'));
+    } else {
+      console.error(color.red(`Error: ${message}`));
+    }
+    process.exit(1);
+  }
+}
+
+// Main CLI
 const program = new Command();
 
 program
@@ -233,28 +517,31 @@ program
   .option('-f, --format <format>', 'Output format (markdown|json)', 'markdown')
   .option('-i, --include-internal', 'Include internal commits (chore, ci, etc.)', false)
   .option('-r, --release <version>', 'Release version number for the changelog')
+  .option('-p, --prepend', 'Prepend to existing CHANGELOG.md instead of overwriting', false)
+  .option('--no-interactive', 'Skip interactive prompts (use flags only)')
   .action(async (options) => {
     try {
       if (!existsSync('.git')) {
-        console.error('Error: Not a git repository. Run from project root.');
+        p.log.error(color.red('Error: Not a git repository. Run from project root.'));
         process.exit(1);
       }
       
-      const changelog = await generateChangelog(options);
+      // If no options provided, use interactive mode
+      const useInteractive = options.interactive && !options.since && !options.output;
       
-      if (options.dryRun) {
-        console.log('\n=== Generated Changelog (Dry Run) ===\n');
-        console.log(changelog);
-        console.log('\n=== End ===\n');
-      } else if (options.output) {
-        const outputPath = resolve(options.output);
-        writeFileSync(outputPath, changelog);
-        console.log(`Changelog written to ${outputPath}`);
+      if (useInteractive) {
+        const interactiveOptions = await interactiveMode();
+        await run(interactiveOptions);
       } else {
-        console.log(changelog);
+        // CLI mode - silent
+        await run({
+          ...options,
+          interactive: false,
+        });
       }
     } catch (error) {
-      console.error('Error:', error);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(color.red(`Error: ${message}`));
       process.exit(1);
     }
   });

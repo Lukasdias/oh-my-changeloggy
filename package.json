@@ -1,25 +1,40 @@
 {
   "name": "changelog-gen",
-  "version": "1.0.0",
-  "description": "Generate user-friendly changelogs from git commits",
-  "module": "src/index.ts",
+  "version": "1.2.0",
+  "description": "Generate user-friendly changelogs from git commits with interactive TUI",
   "type": "module",
-  "bin": {
-    "changelog-gen": "./dist/index.js"
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
+  "bin": {
+    "changelog-gen": "dist/index.js"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "bun build ./src/index.ts --outfile ./dist/index.js --target node",
+    "build:types": "tsc --emitDeclarationOnly",
     "dev": "bun run src/index.ts",
-    "test": "bun test"
+    "test": "bun test",
+    "prepublishOnly": "bun run build && bun run build:types"
   },
   "dependencies": {
-    "commander": "^12.0.0"
+    "@clack/prompts": "^0.9.1",
+    "commander": "^12.0.0",
+    "picocolors": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "bun-types": "latest"
-  },
-  "peerDependencies": {
+    "bun-types": "latest",
     "typescript": "^5.0.0"
   },
   "engines": {
@@ -30,7 +45,21 @@
     "git",
     "release-notes",
     "cli",
-    "conventional-commits"
+    "conventional-commits",
+    "tui",
+    "interactive",
+    "semver",
+    "versioning",
+    "developer-tools"
   ],
-  "license": "MIT"
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lukashdias/changelog-gen.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lukashdias/changelog-gen/issues"
+  },
+  "homepage": "https://github.com/lukashdias/changelog-gen#readme"
 }
