@@ -66,14 +66,7 @@ jobs:
       - name: Setup Node.js for npm
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
-        env:
-          # Prevent setup-node from using token auth - we use OIDC/Trusted Publishing
-          NODE_AUTH_TOKEN: ""
+          node-version: '24'
       
       - name: Publish to npm
-        run: npm publish --access public --provenance
-        env:
-          # Explicitly unset to force OIDC/Trusted Publishing
-          NODE_AUTH_TOKEN: ""
+        run: npm publish --access public
