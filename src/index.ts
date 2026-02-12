@@ -258,7 +258,7 @@ function previewCategories(categories: Map<CommitType, Commit[]>): void {
 }
 
 async function interactiveMode(): Promise<ChangelogOptions> {
-  p.intro(`${color.bgCyan(color.black(' changelog-gen '))}`);
+  p.intro(`${color.bgCyan(color.black(' oh-my-changeloggy '))}`);
   
   // Check git repo
   if (!existsSync('.git')) {
@@ -505,7 +505,7 @@ async function run(options: ChangelogOptions) {
 const program = new Command();
 
 program
-  .name('changelog-gen')
+  .name('oh-my-changeloggy')
   .description('Generate user-friendly changelogs from git commits')
   .version('1.0.0');
 
