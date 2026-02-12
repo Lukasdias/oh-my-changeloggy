@@ -507,7 +507,7 @@ const program = new Command();
 program
   .name('oh-my-changeloggy')
   .description('Generate user-friendly changelogs from git commits')
-  .version('1.2.2');
+  .version('1.2.3');
 
 program
   .option('-s, --since <date>', 'Start date (YYYY-MM-DD) or "last-tag"')
