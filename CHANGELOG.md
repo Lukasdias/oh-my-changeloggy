@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.2.4
+
+*Changes since last-tag*
+
+### 🔧 Chores
+
+- sync version to 1.2.3
+- remove deploy.yml to avoid conflicts with release.yml
+
 ## v1.2.0
 
 *Changes since v1.1.0*
