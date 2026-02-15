@@ -1,85 +1,82 @@
-# Oh My Changeloggy
+# oh-my-changeloggy
 
-Generate user-friendly changelogs from git commits with an interactive terminal UI.
+Generate changelogs from git conventional commits.
 
-## Quick Start
+## Install
 
 ```bash
-# Interactive mode
 npx oh-my-changeloggy
-
-# CLI mode
-changeloggy --since last-tag --release v1.0.0 -o CHANGELOG.md
 ```
-
-## Features
-
-- **Interactive TUI**: Beautiful prompts with [@clack/prompts](https://github.com/bombshell-dev/clack)
-- **Conventional Commits**: Parses `feat:`, `fix:`, `refactor:`, etc.
-- **Smart Filtering**: Hides internal commits (chores, tests, CI) by default
-- **Update Existing**: `--prepend` flag adds new releases without losing history
-- **Multiple Formats**: Markdown or JSON output
 
 ## Usage
 
-### Interactive Mode
-
 ```bash
+# Interactive
 changeloggy
-```
 
-Guides you through selecting commits, format, and output options.
+# CLI
+changeloggy --since last-tag --release v1.0.0 -o CHANGELOG.md
 
-### CLI Mode
-
-```bash
-# Basic usage
-changeloggy --since last-tag
-
-# With version
-changeloggy --since v1.0.0 --release v1.1.0 -o CHANGELOG.md
-
-# Update existing changelog
+# Prepend to existing
 changeloggy --since v1.1.0 --release v1.2.0 -o CHANGELOG.md --prepend
 
-# Include all commits
+# Include internal commits
 changeloggy --since last-tag --include-internal
 
 # JSON output
 changeloggy --since last-tag --format json
 ```
 
-## Commit Format
+## Output
 
-Supports conventional commits:
+**Markdown:**
+```markdown
+# Changelog
 
+## v1.2.0 (2026-02-12)
+
+### ✨ New Features
+
+- **cli**: add --prepend flag for updating existing changelogs
+- **core**: add support for conventional commit scopes
+
+### 🐛 Bug Fixes
+
+- add back registry-url for OIDC Trusted Publishing
+
+### ♻️ Refactoring
+
+- modularize source code into testable components
 ```
-<type>(<scope>): <subject>
 
-<body>
-
-BREAKING CHANGE: <description>
+**JSON:**
+```json
+{
+  "feat": [
+    {
+      "hash": "fa4e029",
+      "subject": "add --prepend flag for updating existing changelogs",
+      "scope": "cli",
+      "author": "Lukasdias",
+      "date": "2026-02-10"
+    }
+  ],
+  "fix": [...]
+}
 ```
 
-Types: `feat`, `fix`, `refactor`, `perf`, `docs`, `chore`, `ci`, `style`, `test`, `build`
+## Commit Types
 
-## Development
+`feat`, `fix`, `refactor`, `perf`, `docs`, `chore`, `ci`, `style`, `test`, `build`
+
+Internal types (chore, ci, style, test, build) filtered by default.
+
+## Dev
 
 ```bash
-# Install dependencies
 bun install
-
-# Build
 bun run build
-
-# Test locally
 ./dist/index.js --since last-tag
-
-# Link for local testing
-npm link
-changeloggy --help
 ```
-
-## License
 
 MIT

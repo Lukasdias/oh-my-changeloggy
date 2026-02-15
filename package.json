@@ -25,7 +25,10 @@
     "build:types": "tsc --emitDeclarationOnly",
     "dev": "bun run src/index.ts",
     "test": "bun test",
-    "prepublishOnly": "bun run build && bun run build:types"
+    "prepublishOnly": "bun run build && bun run build:types",
+    "release": "npm version patch && git push && git push --tags",
+    "release:minor": "npm version minor && git push && git push --tags",
+    "release:major": "npm version major && git push && git push --tags"
   },
   "dependencies": {
     "@clack/prompts": "^0.9.1",
