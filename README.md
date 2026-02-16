@@ -71,12 +71,22 @@ changeloggy --since last-tag --format json
 
 Internal types (chore, ci, style, test, build) filtered by default.
 
-## Dev
+## Development
 
 ```bash
 bun install
-bun run build
-./dist/index.js --since last-tag
+bun run dev        # Run in development
+bun run typecheck  # Type checking
+bun run build      # Build to dist/
+bun run test       # Run tests
+```
+
+## Release
+
+```bash
+bun run release patch   # 1.2.4 -> 1.2.5
+bun run release minor   # 1.2.4 -> 1.3.0
+bun run release major   # 1.2.4 -> 2.0.0
 ```
 
 MIT

@@ -1,34 +1,36 @@
 {
   "name": "oh-my-changeloggy",
   "version": "1.2.4",
-  "description": "Generate user-friendly changelogs from git commits with interactive TUI",
+  "description": "Generate changelogs from git conventional commits",
+  "module": "dist/index.js",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "changeloggy": "./dist/cli.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     }
   },
-  "bin": {
-    "changeloggy": "dist/index.js"
-  },
   "files": [
-    "dist/",
+    "dist",
     "README.md",
-    "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "bun build ./src/index.ts --outfile ./dist/index.js --target node && echo '#!/usr/bin/env node' | cat - ./dist/index.js > temp && mv temp ./dist/index.js && chmod +x ./dist/index.js",
-    "build:types": "tsc --emitDeclarationOnly",
-    "dev": "bun run src/index.ts",
+    "dev": "bun run src/cli.ts",
+    "build": "bun run build.ts",
+    "start": "bun dist/cli.js",
     "test": "bun test",
-    "prepublishOnly": "bun run build && bun run build:types",
-    "release": "npm version patch && git push && git push --tags",
-    "release:minor": "npm version minor && git push && git push --tags",
-    "release:major": "npm version major && git push && git push --tags"
+    "test:watch": "bun test --watch",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "bun run clean && bun run build",
+    "release": "./scripts/release.sh"
   },
   "dependencies": {
     "@clack/prompts": "^0.9.1",
@@ -41,7 +43,7 @@
     "typescript": "^5.0.0"
   },
   "engines": {
-    "node": ">=22"
+    "bun": ">=1.0.0"
   },
   "keywords": [
     "changelog",
@@ -49,17 +51,13 @@
     "release-notes",
     "cli",
     "conventional-commits",
-    "tui",
-    "interactive",
-    "semver",
-    "versioning",
     "developer-tools"
   ],
-  "author": "",
+  "author": "Lukasdias",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Lukasdias/oh-my-changeloggy.git"
+    "url": "git@github.com:Lukasdias/oh-my-changeloggy.git"
   },
   "bugs": {
     "url": "https://github.com/Lukasdias/oh-my-changeloggy/issues"
