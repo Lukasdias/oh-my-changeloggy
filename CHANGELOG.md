@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.3.0
+## v1.2.9
 
 *Changes since v1.0.0*
 
@@ -11,6 +11,7 @@
 
 ### ✨ New Features
 
+- update changelog for v1.3.0 with breaking changes, new features, and documentation improvements
 - enhance changelog generation with new CLI options and configuration support
 - update README and CLI to enhance commit types and improve git repository validation
 - enhance CLI with interactive options and improve build process
