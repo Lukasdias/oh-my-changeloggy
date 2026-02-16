@@ -22,45 +22,57 @@ export function categorizeCommits(commits: Commit[], includeInternal: boolean): 
 }
 
 export function formatMarkdown(
-  categories: Map<CommitType, Commit[]>, 
+  categories: Map<CommitType, Commit[]>,
   version?: string,
-  since?: string
+  since?: string,
+  breakingChanges?: Commit[]
 ): string {
   const date = new Date().toISOString().split('T')[0];
   const versionStr = version || `Unreleased (${date})`;
-  
+
   let output = `# Changelog\n\n`;
   output += `## ${versionStr}\n\n`;
-  
+
   if (since) {
     output += `*Changes since ${since}*\n\n`;
   }
-  
+
+  if (breakingChanges && breakingChanges.length > 0) {
+    output += `### ⚠️ Breaking Changes\n\n`;
+    for (const commit of breakingChanges) {
+      const scope = commit.scope ? `**${commit.scope}**: ` : '';
+      output += `- ${scope}${commit.subject}\n`;
+      if (commit.breaking && commit.breaking !== 'Breaking change') {
+        output += `  - ${commit.breaking}\n`;
+      }
+    }
+    output += '\n';
+  }
+
   const typeOrder: CommitType[] = ['feat', 'fix', 'perf', 'refactor', 'docs', 'test', 'build', 'ci', 'chore', 'style', 'revert', 'other'];
-  
+
   for (const type of typeOrder) {
     const commits = categories.get(type as CommitType);
     if (!commits || commits.length === 0) continue;
-    
+
     const typeInfo = COMMIT_TYPES[type as CommitType];
     output += `### ${typeInfo.label}\n\n`;
-    
+
     for (const commit of commits) {
       const scope = commit.scope ? `**${commit.scope}**: ` : '';
-      const breaking = commit.body.includes('BREAKING CHANGE') ? ' ⚠️ **BREAKING**' : '';
-      output += `- ${scope}${commit.subject}${breaking}\n`;
-      
-      if (commit.body && !commit.body.includes('BREAKING CHANGE')) {
-        const bodyLines = commit.body.split('\n').filter(line => line.trim());
+      output += `- ${scope}${commit.subject}\n`;
+
+      if (commit.body) {
+        const bodyLines = commit.body.split('\n').filter(line => line.trim() && !line.match(/^BREAKING[ -]CHANGE:/));
         if (bodyLines.length > 0) {
           output += `  - ${bodyLines[0]}\n`;
         }
       }
     }
-    
+
     output += '\n';
   }
-  
+
   return output;
 }
 

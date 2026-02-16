@@ -23,6 +23,7 @@ export interface Commit {
   date: string;
   type: CommitType;
   scope?: string;
+  breaking?: string;
 }
 
 export interface ChangelogOptions {
@@ -35,4 +36,6 @@ export interface ChangelogOptions {
   release?: string;
   interactive: boolean;
   prepend: boolean;
+  autoVersion?: boolean;
+  scopeFilter?: string[];
 }

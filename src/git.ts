@@ -4,19 +4,25 @@ import color from 'picocolors';
 import { Commit, CommitType } from './types';
 import { COMMIT_TYPES } from './constants';
 
-export function parseConventionalCommit(subject: string): { type: CommitType; scope?: string; description: string } {
-  const match = subject.match(/^(\w+)(?:\(([^)]+)\))?!?:\s*(.+)$/);
+export function parseConventionalCommit(subject: string): { type: CommitType; scope?: string; description: string; isBreaking: boolean } {
+  const match = subject.match(/^(\w+)(?:\(([^)]+)\))?(!)?:\s*(.+)$/);
   
   if (!match) {
-    return { type: 'other', description: subject };
+    return { type: 'other', description: subject, isBreaking: false };
   }
   
-  const [, type, scope, description] = match;
+  const [, type, scope, breakingMarker, description] = match;
   return {
     type: (type as CommitType) in COMMIT_TYPES ? (type as CommitType) : 'other',
     scope,
     description,
+    isBreaking: breakingMarker === '!',
   };
+}
+
+export function extractBreakingChange(body: string): string | undefined {
+  const match = body.match(/BREAKING[ -]CHANGE:\s*(.+?)(?=\n\n|\n[A-Z]+:|\s*$)/s);
+  return match ? match[1].trim() : undefined;
 }
 
 export function getLastTagSilent(): string | null {
@@ -80,15 +86,18 @@ export async function getCommits(since?: string, until?: string, interactive = f
         const parts = entry.split('\x1f');
         const subject = parts[1]?.trim() || '';
         const parsed = parseConventionalCommit(subject);
+        const body = parts[2]?.trim() || '';
+        const breakingBody = extractBreakingChange(body);
         
         return {
           hash: parts[0]?.trim().substring(0, 7) || '',
           subject: parsed.description,
-          body: parts[2]?.trim() || '',
+          body,
           author: parts[3]?.trim() || '',
           date: parts[4]?.trim() || '',
           type: parsed.type,
           scope: parsed.scope,
+          breaking: parsed.isBreaking ? (breakingBody || 'Breaking change') : breakingBody,
         };
       });
     

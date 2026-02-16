@@ -4,6 +4,7 @@ import * as p from '@clack/prompts';
 import color from 'picocolors';
 import { run } from './core';
 import { interactiveMode } from './ui';
+import { mergeWithConfig } from './config';
 
 function isGitRepo(): boolean {
   try {
@@ -30,6 +31,8 @@ program
   .option('-i, --include-internal', 'Include internal commits (chore, ci, etc.)', false)
   .option('-r, --release <version>', 'Release version number for the changelog')
   .option('-p, --prepend', 'Prepend to existing CHANGELOG.md instead of overwriting', false)
+  .option('--scope <scopes>', 'Filter by scopes (comma-separated)')
+  .option('--auto-version', 'Auto-detect version bump from commits')
   .option('--no-interactive', 'Skip interactive prompts (use flags only)')
   .action(async (options) => {
     try {
@@ -38,17 +41,20 @@ program
         console.error(color.dim('Run this command from within a git repository.'));
         process.exit(1);
       }
-      
+
+      const scopeFilter = options.scope ? options.scope.split(',').map((s: string) => s.trim()) : undefined;
+
       const useInteractive = options.interactive && !options.since && !options.output;
-      
+
       if (useInteractive) {
         const interactiveOptions = await interactiveMode();
-        await run(interactiveOptions);
+        await run(mergeWithConfig(interactiveOptions));
       } else {
-        await run({
+        await run(mergeWithConfig({
           ...options,
           interactive: false,
-        });
+          scopeFilter,
+        }));
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

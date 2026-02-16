@@ -29,6 +29,15 @@ changeloggy --since last-tag --include-internal
 
 # JSON output
 changeloggy --since last-tag --format json
+
+# Dry run with stats
+changeloggy --since last-tag --dry-run
+
+# Auto-detect version bump
+changeloggy --since last-tag --dry-run --auto-version
+
+# Filter by scope
+changeloggy --since last-tag --scope api,auth
 ```
 
 ## Output
@@ -74,6 +83,21 @@ changeloggy --since last-tag --format json
 `feat`, `fix`, `refactor`, `perf`, `security`, `deps`, `docs`, `config`, `style`, `test`, `chore`, `ci`, `build`, `revert`
 
 Internal types (chore, ci, style, test, build, deps, config) filtered by default.
+
+Breaking changes are extracted from commit bodies (`BREAKING CHANGE: description`) and placed in a dedicated section.
+
+## Config File
+
+Create `.changeloggy.json` in your project root:
+
+```json
+{
+  "output": "CHANGELOG.md",
+  "format": "markdown",
+  "includeInternal": false,
+  "scopes": ["api", "ui"]
+}
+```
 
 ## Development
 
