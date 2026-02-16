@@ -10,6 +10,9 @@ export type CommitType =
   | 'build'
   | 'ci'
   | 'revert'
+  | 'security'
+  | 'deps'
+  | 'config'
   | 'other';
 
 export interface Commit {

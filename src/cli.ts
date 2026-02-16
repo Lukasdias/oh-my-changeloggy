@@ -1,9 +1,18 @@
 import { Command } from 'commander';
-import { existsSync } from 'fs';
+import { execSync } from 'child_process';
 import * as p from '@clack/prompts';
 import color from 'picocolors';
 import { run } from './core';
 import { interactiveMode } from './ui';
+
+function isGitRepo(): boolean {
+  try {
+    execSync('git rev-parse --git-dir', { stdio: 'pipe' });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 const program = new Command();
 
@@ -24,8 +33,9 @@ program
   .option('--no-interactive', 'Skip interactive prompts (use flags only)')
   .action(async (options) => {
     try {
-      if (!existsSync('.git')) {
-        p.log.error(color.red('Error: Not a git repository. Run from project root.'));
+      if (!isGitRepo()) {
+        console.error(color.red('Error: Not a git repository.'));
+        console.error(color.dim('Run this command from within a git repository.'));
         process.exit(1);
       }
       

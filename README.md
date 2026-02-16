@@ -5,7 +5,11 @@ Generate changelogs from git conventional commits.
 ## Install
 
 ```bash
-npx oh-my-changeloggy
+# With Bun (recommended)
+bun install -g oh-my-changeloggy
+
+# With npm
+npm install -g oh-my-changeloggy
 ```
 
 ## Usage
@@ -67,9 +71,9 @@ changeloggy --since last-tag --format json
 
 ## Commit Types
 
-`feat`, `fix`, `refactor`, `perf`, `docs`, `chore`, `ci`, `style`, `test`, `build`
+`feat`, `fix`, `refactor`, `perf`, `security`, `deps`, `docs`, `config`, `style`, `test`, `chore`, `ci`, `build`, `revert`
 
-Internal types (chore, ci, style, test, build) filtered by default.
+Internal types (chore, ci, style, test, build, deps, config) filtered by default.
 
 ## Development
 

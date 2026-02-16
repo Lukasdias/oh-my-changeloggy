@@ -5,14 +5,17 @@ export const COMMIT_TYPES: Record<CommitType, { label: string; emoji: string; de
   fix: { label: '🐛 Bug Fixes', emoji: '🐛', description: 'Bug fixes' },
   refactor: { label: '♻️ Refactoring', emoji: '♻️', description: 'Code refactoring' },
   perf: { label: '⚡ Performance', emoji: '⚡', description: 'Performance improvements' },
+  security: { label: '🔒 Security', emoji: '🔒', description: 'Security fixes' },
+  deps: { label: '📦 Dependencies', emoji: '📦', description: 'Dependency updates' },
   docs: { label: '📚 Documentation', emoji: '📚', description: 'Documentation changes' },
+  config: { label: '⚙️ Configuration', emoji: '⚙️', description: 'Configuration changes' },
   style: { label: '💄 Styling', emoji: '💄', description: 'Code style changes' },
   test: { label: '✅ Tests', emoji: '✅', description: 'Test changes' },
   chore: { label: '🔧 Chores', emoji: '🔧', description: 'Build/tooling changes' },
-  build: { label: '📦 Build', emoji: '📦', description: 'Build system changes' },
+  build: { label: '🏗️ Build', emoji: '🏗️', description: 'Build system changes' },
   ci: { label: '🔄 CI/CD', emoji: '🔄', description: 'CI/CD changes' },
   revert: { label: '⏪ Reverts', emoji: '⏪', description: 'Reverted changes' },
   other: { label: '📝 Other', emoji: '📝', description: 'Other changes' },
 };
 
-export const INTERNAL_TYPES: CommitType[] = ['chore', 'ci', 'style', 'test', 'build'];
+export const INTERNAL_TYPES: CommitType[] = ['chore', 'ci', 'style', 'test', 'build', 'deps', 'config'];
