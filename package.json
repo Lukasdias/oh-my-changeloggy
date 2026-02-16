@@ -1,6 +1,6 @@
 {
   "name": "oh-my-changeloggy",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "Generate changelogs from git conventional commits",
   "module": "dist/index.js",
   "type": "module",
